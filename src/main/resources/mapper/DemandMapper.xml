@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.DemandMapper">
+
+    <select id="getList" resultType="Demand">
+        select s.state_desc,s.state_id,d.demand_status,u.user_name,u.user_nick as user_demand_nick,d.demand_time,d.demand_name,d.demand_end_time,d.demand_id,d.demand_number,concat(a.address_province,a.address_city,a.address_district,a.address_detail) as address_name,
+        t.type_name,p.pic_path,p.pic_upload_time from tb_demand d join tb_address a on d.demand_destination=a.address_id
+        join tb_demand_type t on d.demand_type_id  = t.type_id
+        join tb_demand_pic p on d.demand_pic = p.pic_id
+        join tb_user u on u.user_id = d.demand_publisher
+        join tb_state s on s.state_id = d.demand_status
+        <if test="id !=null and id != '' and id != -1">
+            where d.demand_publisher = #{id}
+        </if>
+        order by d.demand_time DESC
+        limit #{start},#{pageSize}
+
+    </select>
+
+    <select id="getListByNick" resultType="Demand">
+        select s.state_desc,s.state_id,d.demand_status,u.user_name,u.user_nick as user_demand_nick,d.demand_time,d.demand_name,d.demand_end_time,d.demand_id,d.demand_number,concat(a.address_province,a.address_city,a.address_district,a.address_detail) as address_name,
+        t.type_name,p.pic_path,p.pic_upload_time from tb_demand d join tb_address a on d.demand_destination=a.address_id
+        join tb_demand_type t on d.demand_type_id  = t.type_id
+        join tb_demand_pic p on d.demand_pic = p.pic_id
+        join tb_user u on u.user_id = d.demand_publisher
+        join tb_state s on s.state_id = d.demand_status
+        <if test="user_nick !=null and user_nick != ''">
+            where u.user_nick  like "%"#{user_nick}"%"
+        </if>
+        order by d.demand_time DESC
+        limit #{start},#{pageSize}
+
+    </select>
+    <!-- 获取已通过需求审核的捐助 -->
+    <select id="getListHasPass" resultType="Demand">
+        select s.state_desc,s.state_id,d.demand_status,d.demand_level,u.user_name,d.demand_time,d.demand_name,d.demand_end_time,d.demand_id,d.demand_number,concat(a.address_province,a.address_city,a.address_district,a.address_detail) as address_name,
+        t.type_name,p.pic_path,p.pic_upload_time from tb_demand d join tb_address a on d.demand_destination=a.address_id
+        join tb_demand_type t on d.demand_type_id  = t.type_id
+        join tb_demand_pic p on d.demand_pic = p.pic_id
+        join tb_user u on u.user_id = d.demand_publisher
+        join tb_state s on s.state_id = d.demand_status
+        where d.demand_status != 1 and d.demand_status !=3 and demand_status != 8 and demand_status != 10
+        order by d.demand_time DESC
+        limit #{start},#{pageSize}
+    </select>
+    <select id="getListTotal" resultType="int">
+        select count(*) from tb_demand
+        <trim prefix="where" prefixOverrides="and">
+            <if test="demand_name != null and demand_name != ''">
+                demand_name like "%"#{demand_name}"%"
+            </if>
+        </trim>
+    </select>
+
+    <select id="getTotal" resultType="int">
+        select count(*) from tb_demand
+        <if test="id !=null and id != '' and id != -1">
+            where demand_publisher = #{id}
+        </if>
+    </select>
+    <!--获取已通过需求审核的捐助的数量-->
+    <select id="getTotalHasPass" resultType="int">
+        select count(*) from tb_demand
+        where demand_status != 1 and demand_status !=3
+    </select>
+
+    <resultMap type="Demand" id="demandItem">
+        <id property="demand_id" column="demand_id"></id>
+        <result property="demand_name" column="demand_name"></result>
+        <result property="demand_time" column="demand_time"></result>
+        <result property="state_desc" column="state_desc"></result>
+        <result property="demand_check_time" column="demand_check_time"></result>
+        <result property="demand_status" column="demand_status"></result>
+        <result property="demand_check_reason" column="demand_check_reason"></result>
+        <result property="demand_end_time" column="demand_end_time"></result>
+        <result property="demand_number" column="demand_number"></result>
+        <result property="demand_level" column="demand_level"></result>
+        <result property="demand_desc" column="demand_desc"></result>
+        <result property="address_name" column="address_name"></result>
+        <result property="type_name" column="type_name"></result>
+        <result property="pic_path" column="pic_path"></result>
+        <result property="pic_upload_time" column="pic_upload_time"></result>
+        <association property="user" javaType="User" column="user">
+            <id property="user_id" column="user_id"></id>
+            <result property="user_nick" column="user_nick"></result>
+            <result property="img" column="img"></result>
+            <result property="user_type" column="user_type"></result>
+            <result property="user_QQ" column="user_QQ"></result>
+            <result property="user_telephone" column="user_telephone"></result>
+        </association>
+    </resultMap>
+    <select id="get" resultMap="demandItem" parameterType="int">
+        select tp.pic_path as img,s.state_desc,d.demand_status,d.demand_level,d.demand_desc,u.*,d.demand_time,d.demand_name,d.demand_check_time,d.demand_check_reason,d.demand_end_time,d.demand_id,d.demand_number,concat(a.address_province,a.address_city,a.address_district,a.address_detail) as address_name,
+        t.type_name,p.pic_path,p.pic_upload_time from tb_demand d join tb_address a on d.demand_destination=a.address_id
+        join tb_demand_type t on d.demand_type_id  = t.type_id
+        join tb_demand_pic p on d.demand_pic = p.pic_id
+        join tb_user u on u.user_id = d.demand_publisher
+        join tb_state s on s.state_id = d.demand_status
+        left join tb_demand_pic tp on tp.pic_id = u.user_credential
+        where d.demand_id = #{demand_id}
+    </select>
+
+
+    <resultMap type="Demand" id="demandAndApply">
+        <id property="demand_id" column="demand_id"></id>
+        <collection property="applyList" ofType="Apply" column="demand_id">
+            <id property="apply_id" column="apply_id"></id>
+            <result property="apply_person" column="apply_person"></result>
+            <result property="apply_time" column="apply_time"></result>
+            <result property="check_time" column="check_time"></result>
+            <result property="plan_num" column="plan_num"></result>
+            <result property="real_num" column="real_num"></result>
+            <result property="state_id" column="state_id"></result>
+            <result property="state" column="state"></result>
+            <result property="pic_path" column="pic_path"></result>
+            <result property="demand_id" column="demand_id"></result>
+            <association property="user" javaType="User" column="user">
+                <id property="user_id" column="user_id"></id>
+                <result property="user_nick" column="user_nick"></result>
+                <result property="user_type" column="user_type"></result>
+                <result property="user_name" column="user_name"></result>
+                <result property="user_QQ" column="user_QQ"></result>
+                <result property="user_telephone" column="user_telephone"></result>
+            </association>
+        </collection>
+    </resultMap>
+
+    <select id="getApplyPeople" parameterType="int" resultMap="demandAndApply">
+        select a.*,p.pic_path,u.* ,s.state_desc as state from tb_apply a
+        join tb_user u on u.user_id = a.apply_person
+        join tb_demand_pic p on p.pic_id = a.pic_id
+        join tb_state s on s.state_id = a.state_id
+
+        where a.demand_id = #{demand_id} and (a.state_id = 4 or a.state_id = 5 or a.state_id = 6 or a.state_id = 7 or a.state_id = 9 or a.state_id = 13)
+        order by a.apply_time DESC
+        limit #{start},#{pageSize}
+    </select>
+
+
+    <select id="getType" resultType="Type">
+        select * from tb_demand_type
+    </select>
+
+    <insert id="insertAddress" parameterType="Address"  useGeneratedKeys="true" keyProperty="address_id" keyColumn="address_id">
+        insert into tb_address
+        (address_province,address_city,address_district,address_detail)
+        values (#{address_province},#{address_city},#{address_district},#{address_detail})
+    </insert>
+
+    <update id="updateAddress" parameterType="Address">
+        update tb_address
+        set
+        address_province = #{address_province},
+        address_city = #{address_city},
+        address_district = #{address_district},
+        address_detail = #{address_detail}
+        where address_id=#{address_id}
+    </update>
+
+    <insert id="addDemand" parameterType="Demand">
+        insert into tb_demand (demand_name,demand_number,demand_type_id,demand_destination,demand_pic,demand_time,demand_status,demand_end_time,demand_publisher,demand_level,demand_desc)
+        values (#{demand_name},#{demand_number},#{demand_type_id},#{demand_destination},#{demand_pic},#{demand_time},1,#{demand_end_time},#{demand_publisher},#{demand_level},#{demand_desc})
+    </insert>
+
+    <insert id="insertPic" parameterType="Picture" useGeneratedKeys="true" keyProperty="pic_id" keyColumn="pic_id">
+        insert into tb_demand_pic (pic_path,pic_upload_time) values (#{pic_path},#{pic_upload_time})
+    </insert>
+
+
+    <update id="checkDemand" parameterType="Demand">
+        update tb_demand set
+        <if test="demand_check_reason !=null and demand_check_reason != ''">
+            demand_check_reason = #{demand_check_reason},
+        </if>
+            demand_check_time = #{demand_check_time},
+        demand_status = #{demand_status}
+        where demand_id = #{demand_id}
+    </update>
+
+
+    <update id="updateDemand" parameterType="Demand">
+        update tb_demand
+        <set>
+            demand_status = #{demand_status},
+            <if test="demand_desc != null and demand_desc != ''">
+                demand_desc = #{demand_desc},
+            </if>
+            <if test="demand_name != null and demand_name != ''">
+                demand_name = #{demand_name},
+            </if>
+            <if test="demand_pic != null and demand_pic != ''">
+                demand_pic = #{demand_pic},
+            </if>
+            <if test="demand_type_id != null and demand_type_id != ''">
+                demand_type_id = #{demand_type_id},
+            </if>
+        </set>
+        where demand_id = #{demand_id}
+    </update>
+
+
+    <update id="updateTime" parameterType="Demand">
+        update tb_demand set demand_end_time = #{demand_end_time}
+        where demand_id = #{demand_id}
+    </update>
+
+    <resultMap type="Demand" id="picItem">
+        <id property="demand_id" column="demand_id"></id>
+        <result property="demand_name" column="demand_name"></result>
+        <result property="demand_time" column="demand_time"></result>
+        <result property="state_desc" column="state_desc"></result>
+        <result property="demand_type_id" column="demand_type_id"></result>
+        <result property="address_name" column="address_name"></result>
+        <result property="demand_status" column="demand_status"></result>
+        <result property="demand_status" column="demand_status"></result>
+        <result property="demand_desc" column="demand_desc"></result>
+        <result property="type_name" column="type_name"></result>
+        <result property="pic_path" column="pic_path"></result>
+        <result property="user_demand_nick" column="user_demand_nick"></result>
+    </resultMap>
+    <!-- 查询需求对应的物资 -->
+    <select id ="getPics" resultMap="picItem" parameterType="demand">
+        select d.*,p.* ,u.*,u.user_nick as user_demand_nick,t.type_name,concat(a.address_province,a.address_city,a.address_district,a.address_detail) as address_name from tb_demand d
+        join tb_demand_pic p on p.pic_id = d.demand_pic
+        join tb_address a on a.address_id = d.demand_destination
+        join tb_demand_type t on t.type_id = d.demand_type_id
+        join tb_user u on u.user_id = d.demand_publisher
+        <trim prefix="where" prefixOverrides="and">
+            <if test="demand.demand_name != null and demand.demand_name != ''">
+                d.demand_name like "%"#{demand.demand_name}"%"
+            </if>
+        </trim>
+        order by d.demand_time DESC
+        limit #{start},#{pageSize}
+    </select>
+
+
+    <update id="updateNum" parameterType="demand">
+        update tb_demand
+        set demand_number = #{demand_number}
+        where demand_id = #{demand_id}
+    </update>
+    <!-- 查询需求对应的物资 -->
+    <select id ="getPic" resultMap="picItem" parameterType="int">
+        select d.*,p.* ,u.*,u.user_nick as user_demand_nick,t.type_name,concat(a.address_province,a.address_city,a.address_district,a.address_detail) as address_name from tb_demand d
+        join tb_demand_pic p on p.pic_id = d.demand_pic
+        join tb_address a on a.address_id = d.demand_destination
+        join tb_demand_type t on t.type_id = d.demand_type_id
+        join tb_user u on u.user_id = d.demand_publisher
+        where d.demand_id = #{id}
+    </select>
+
+
+    <select id="getPersonNum" parameterType="int" resultType="int">
+        select count(*) from tb_demand where
+        demand_publisher = #{id} and (demand_status != 9 and  demand_status != 10 and demand_status != 8 and demand_status != 3)
+    </select>
+
+
+
+
+
+    <!--查询需要改变状态的需求 -->
+    <select id="findDemandHasChange" resultType="demand">
+        select * from tb_demand where
+        TO_DAYS(NOW()) - TO_DAYS(demand_end_time) > 0
+        and
+        demand_status != 3
+    </select>
+
+
+</mapper>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.ActivityMapper">
+    <resultMap type="Activity" id="activityItem">
+        <id property="activity_id" column="activity_id"></id>
+        <result property="activity_title" column="activity_title"></result>
+        <result property="activity_content" column="activity_content"></result>
+        <result property="activity_start_time" column="activity_start_time"></result>
+        <result property="activity_end_time" column="activity_end_time"></result>
+        <result property="activity_publish_time" column="activity_publish_time"></result>
+        <result property="activity_number" column="activity_number"></result>
+        <result property="activity_real_number" column="activity_real_number"></result>
+        <result property="user_name" column="user_name"></result>
+        <result property="address_name" column="address_name"></result>
+        <result property="activity_type" column="activity_type"></result>
+        <result property="activity_team_num" column="activity_team_num"></result>
+        <result property="type_name" column="type_name"></result>
+        <result property="state_id" column="state_id"></result>
+        <result property="state_name" column="state_name"></result>
+        <association property="address" javaType="Address" column="address">
+            <result property="address_id" column="address_id"></result>
+            <result property="address_province" column="address_province"></result>
+            <result property="address_city" column="address_city"></result>
+            <result property="address_district" column="address_district"></result>
+            <result property="address_detail" column="address_detail"></result>
+        </association>
+    </resultMap>
+  <select id="getList" resultMap="activityItem" parameterType="activity">
+      SELECT a.*,s.state_desc as state_name,u.user_name,r.*,concat(r.address_province,r.address_city,r.address_district,r.address_detail) as address_name,t.type_name
+      from tb_activity a
+      join tb_user u on a.activity_publisher = u.user_id
+      join tb_address r on a.activity_area = r.address_id
+      join tb_activity_type t on t.type_id = a.activity_type
+      join tb_state s on s.state_id = a.state_id
+      <trim prefix="where" prefixOverrides="and">
+          <if test="activity.activity_title != null and activity.activity_title != ''">
+              activity_title like "%"#{activity.activity_title}"%"
+          </if>
+      </trim>
+      order by activity_publish_time DESC
+      limit #{start},#{pageSize}
+  </select>
+
+    <select id="getMyActivity" resultMap="activityItem" parameterType="int">
+        SELECT a.*,au.*,s.state_desc as state_name,u.user_nick,r.*,concat(r.address_province,r.address_city,r.address_district,r.address_detail) as address_name,
+        t.type_name
+        from tb_activity_user au
+        join tb_activity a on a.activity_id = au.activity_id
+        join tb_user u on au.person_id = u.user_id
+        join tb_address r on a.activity_area = r.address_id
+        join tb_activity_type t on t.type_id = a.activity_type
+        join tb_state s on s.state_id = a.state_id
+        where au.person_id = #{id}
+        order by au.time DESC
+        limit #{start},#{pageSize}
+    </select>
+
+
+
+
+
+
+    <select id="getCount" resultType="int">
+        select count(*) from tb_activity
+    </select>
+
+    <select id="get" resultMap="activityItem" parameterType="int">
+        SELECT a.*,s.state_desc as state_name,u.user_name,r.*,concat(r.address_province,r.address_city,r.address_district,r.address_detail) as address_name,t.type_name
+        from tb_activity a
+        join tb_user u on a.activity_publisher = u.user_id
+        join tb_address r on a.activity_area = r.address_id
+        join tb_activity_type t on t.type_id = a.activity_type
+        join tb_state s on s.state_id = a.state_id
+        where a.activity_id = #{id}
+    </select>
+
+    <update id="updateOne" parameterType="int">
+        update tb_activity
+        set activity_real_number = (activity_real_number+#{num})
+        where activity_id = #{id}
+    </update>
+
+
+    <select id="getType" resultType="ActivityType">
+        select * from tb_activity_type
+    </select>
+    <delete id="delItem" parameterType="int">
+        delete from tb_activity where activity_id = #{id}
+    </delete>
+
+    <insert id="add" parameterType="Activity">
+        insert into tb_activity (activity_publisher,activity_start_time,activity_end_time,
+        activity_publish_time,activity_number,activity_area,activity_content,activity_type,activity_title,
+        activity_real_number,activity_team_num,state_id)
+        values
+        (#{activity_publisher},#{activity_start_time},
+        #{activity_end_time},#{activity_publish_time},#{activity_number},
+        #{activity_area},#{activity_content},#{activity_type},#{activity_title},0,#{activity_team_num},10)
+    </insert>
+
+    <update id="update" parameterType="Activity">
+        update tb_activity
+        set
+        activity_start_time = #{activity_start_time},
+        activity_end_time = #{activity_end_time},
+        activity_content = #{activity_content},
+        activity_type = #{activity_type},
+        activity_title = #{activity_title}
+        ,activity_update_by = #{activity_update_by},
+        activity_number = #{activity_number},
+        activity_team_num = #{activity_team_num},
+        activity_update_time = #{activity_update_time},
+        state_id = #{state_id}
+        where activity_id = #{activity_id}
+    </update>
+
+
+    <!--查询需要改变状态的活动 -->
+    <select id="findActHasChange" resultType="activity" parameterType="int">
+        select * from tb_activity where
+        <if test="type==0">
+            TO_DAYS(NOW()) - TO_DAYS(activity_start_time) > 0
+        </if>
+        <if test="type==1">
+            TO_DAYS(NOW()) - TO_DAYS(activity_end_time) > 0
+        </if>
+    </select>
+</mapper>

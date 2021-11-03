@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.AnnouncementMapper">
+    <resultMap type="announcement" id="announcementItem">
+        <id property="announcement_id" column="announcement_id"></id>
+        <result property="announcement_content" column="announcement_content"></result>
+        <result property="announcement_time" column="announcement_time"></result>
+        <result property="announcement_publisher" column="announcement_publisher"></result>
+        <result property="announcement_title" column="announcement_title"></result>
+        <result property="user_name" column="user_name"></result>
+        <result property="user_nick" column="user_nick"></result>
+    </resultMap>
+   <select id="getInfo" resultMap="announcementItem" parameterType="announcement">
+       select a.* ,u.user_name,u.user_nick from tb_announcement a join tb_user u
+       on u.user_id = a.announcement_publisher
+       <trim prefix="where" prefixOverrides="and">
+           <if test="announcement.announcement_title != null and announcement.announcement_title != ''">
+               announcement_title like "%"#{announcement.announcement_title}"%"
+           </if>
+       </trim>
+       order by announcement_id DESC
+       limit #{start},#{pageSize}
+   </select>
+    <select id="getCount" resultType="int" parameterType="announcement">
+        select count(*) from tb_announcement
+        <trim prefix="where" prefixOverrides="and">
+            <if test="announcement_title != null and announcement_title != ''">
+                announcement_title like "%"#{announcement_title}"%"
+            </if>
+        </trim>
+    </select>
+
+    <insert id="addAnnouncement">
+        insert into tb_announcement
+        (announcement_content,announcement_time,announcement_publisher,announcement_title)
+        values
+        (#{announcement_content},#{announcement_time},
+        #{announcement_publisher},#{announcement_title})
+    </insert>
+
+    <delete id="delItem">
+        delete from tb_announcement where announcement_id = #{announcement_id}
+    </delete>
+
+    <select id="get" parameterType="int" resultType="announcement">
+        select a.* ,u.user_name,u.user_nick from tb_announcement a join tb_user u
+        on u.user_id = a.announcement_publisher
+        where announcement_id = #{id}
+    </select>
+
+
+    <update id="updateOne" parameterType="announcement">
+        update tb_announcement set
+        announcement_content = #{announcement_content},
+        announcement_time = #{announcement_time}
+        where announcement_id = #{announcement_id}
+    </update>
+</mapper>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.DonationMapper">
+    <insert id="insertOne" parameterType="Donation">
+        insert into tb_donation
+        (demand_id,state_id,submit_time,apply_id)
+        values
+        (#{demand_id},#{state_id},#{submit_time},#{apply_id})
+    </insert>
+    <!-- -->
+    <select id="get" resultType="Donation" parameterType="int">
+        select c.* from tb_demand_check c
+        where demand_id = #{demand_id} and state_id = 6
+    </select>
+
+    <select id="getReason" parameterType="int" resultType="String">
+        select reason from tb_donation
+        where demand_id = #{demand_id}
+    </select>
+
+    <update id="updateOne" parameterType="Donation">
+        update tb_donation
+        <set>
+            <if test="pic_id != '' and pic_id != null">
+                pic_id = #{pic_id},
+            </if>
+            <if test="submit_time != null">
+                submit_time = #{submit_time},
+            </if>
+            <if test="check_time != null">
+                check_time = #{check_time},
+            </if>
+            <if test="reason != null and reason != ''">
+                reason = #{reason},
+            </if>
+            <if test="state_id != null and state_id != '' ">
+                state_id = #{state_id},
+            </if>
+        </set>
+        where donation_id = #{donation_id}
+    </update>
+
+
+    <resultMap type="Donation" id="donationItem">
+        <id property="donation_id" column="donation_id"></id>
+        <result property="state_id" column="state_id"></result>
+
+        <result property="check_time" column="check_time"></result>
+
+        <result property="state" column="state"></result>
+        <association property="demand" javaType="demand" column="demand">
+            <result property="demand_id" column="demand_id"></result>
+            <result property="user_demand_nick" column="user_demand_nick"></result>
+            <result property="user_type" column="user_demand_type"></result>
+            <result property="demand_name" column="demand_name"></result>
+            <result property="demand_number" column="demand_number"></result>
+            <result property="type_name" column="type_name"></result>
+            <result property="address_name" column="address_name"></result>
+            <result property="pic_path" column="demand_pic_path"></result>
+            <result property="demand_time" column="demand_time"></result>
+            <result property="demand_end_time" column="demand_end_time"></result>
+            <result property="demand_check_time" column="demand_check_time"></result>
+            <result property="demand_check_reason" column="demand_check_reason"></result>
+            <result property="demand_level" column="demand_level"></result>
+            <result property="demand_desc" column="demand_desc"></result>
+        </association>
+        <association property="address" javaType="Address" column="address">
+            <result property="address_id" column="address_id"></result>
+            <result property="address_province" column="address_province"></result>
+            <result property="address_city" column="address_city"></result>
+            <result property="address_district" column="address_district"></result>
+            <result property="address_detail" column="address_detail"></result>
+        </association>
+        <association property="apply" javaType="apply" column="apply">
+            <result property="apply_id" column="apply_id"></result>
+            <result property="user_apply_nick" column="user_apply_nick"></result>
+            <result property="user_type" column="user_help_type"></result>
+            <result property="apply_time" column="apply_time"></result>
+            <result property="check_time" column="apply_check_time"></result>
+            <result property="plan_num" column="plan_num"></result>
+            <result property="real_num" column="real_num"></result>
+        </association>
+    </resultMap>
+    <!-- 获取全部的捐助信息 -->
+    <select id="getAllList" resultMap="donationItem">
+        select dc.donation_id,dc.check_time,s.state_desc  as state,dc.state_id,u.user_nick as user_demand_nick,
+        d.demand_name,
+        d.demand_id,
+        d.demand_number,
+        ap.apply_id,
+        t.type_name as type_name,
+        concat(a.address_province,a.address_city,a.address_district,a.address_detail) as address_name,
+        p1.pic_path as demand_pic_path,
+        d.demand_time	,
+        d.demand_end_time,
+        d.demand_check_time,
+        d.demand_check_reason,
+        d.demand_level,
+        d.demand_desc,
+        u1.user_nick as user_apply_nick,
+        ap.apply_time,
+        ap.*,
+        ap.check_time as apply_check_time
+        from tb_donation dc
+        join tb_state s on s.state_id = dc.state_id
+        join tb_demand d on dc.demand_id = d.demand_id
+        join tb_user u on u.user_id = d.demand_publisher
+        join tb_demand_type t on t.type_id = d.demand_type_id
+        join tb_address a on d.demand_destination = a.address_id
+        join tb_demand_pic p1 on p1.pic_id = d.demand_pic
+        left join tb_apply ap on ap.apply_id = dc.apply_id
+        join tb_user u1 on u1.user_id = ap.apply_person
+        order by dc.donation_id DESC
+        limit #{start},#{pageSize}
+    </select>
+
+    <select id="getTotal" resultType="int">
+        select count(*)
+        from tb_apply a
+        left join tb_donation c on a.apply_id = c.apply_id
+    </select>
+
+    <!-- 获取单个捐助信息 -->
+    <select id="getAllInfo" resultMap="donationItem" parameterType="int">
+        select a.*,dc.donation_id,dc.check_time,s.state_desc  as state,dc.state_id,u.user_nick as user_demand_nick,
+        u.user_type as user_demand_type,
+        d.demand_name,
+        d.demand_number,
+        t.type_name as type_name,
+        concat(a.address_province,a.address_city,a.address_district,a.address_detail) as address_name,
+        p1.pic_path as demand_pic_path,
+        d.demand_time	,
+        d.demand_end_time,
+        d.demand_check_time,
+        d.demand_check_reason,
+        d.demand_level,
+        d.demand_desc,
+        d.demand_id,
+        ap.apply_id,
+        ap.*,
+        u1.user_nick as user_apply_nick,
+        u1.user_type as user_apply_type,
+        ap.apply_time,
+        ap.check_time as apply_check_time
+        from tb_donation dc
+        join tb_state s on s.state_id = dc.state_id
+        join tb_demand d on dc.demand_id = d.demand_id
+        join tb_user u on u.user_id = d.demand_publisher
+        join tb_demand_type t on t.type_id = d.demand_type_id
+        join tb_address a on d.demand_destination = a.address_id
+        join tb_demand_pic p1 on p1.pic_id = d.demand_pic
+        join tb_apply ap on ap.apply_id = dc.apply_id
+        join tb_user u1 on u1.user_id = ap.apply_person
+        where dc.donation_id = #{id}
+    </select>
+
+
+    <!-- 获取donation_id -->
+    <select id="getCheckId" resultType="int">
+        select donation_id from tb_donation where
+        apply_id =#{apply_id} and demand_id=#{demand_id}
+    </select>
+
+</mapper>

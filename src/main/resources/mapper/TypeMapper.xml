@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.TypeMapper">
+    <select id="list" resultType="Type" parameterType="type">
+        select * from tb_demand_type
+        <trim prefix="where" prefixOverrides="and">
+            <if test="type.type_name != null and type.type_name != ''">
+                type_name like "%"#{type.type_name}"%"
+            </if>
+        </trim>
+        limit #{start},#{pageSize}
+    </select>
+    <select id="getCount" resultType="int">
+        select count(*) from tb_demand_type
+        <trim prefix="where" prefixOverrides="and">
+            <if test="type_name != null and type_name != ''">
+                type_name like "%"#{type_name}"%"
+            </if>
+        </trim>
+    </select>
+    <insert id="insertOne" parameterType="Type">
+        insert into tb_demand_type (type_name)
+        values
+        (#{type_name})
+    </insert>
+    <update id="updateOne" parameterType="Type">
+        update tb_demand_type set
+        type_name = #{type_name}
+        where type_id = #{type_id}
+    </update>
+    <select id="get" parameterType="int" resultType="Type">
+        select  * from tb_demand_type where type_id = #{id}
+    </select>
+    <delete id="del" parameterType="int">
+        delete from tb_demand_type where
+        type_id = #{id}
+    </delete>
+</mapper>

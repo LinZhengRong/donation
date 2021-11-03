@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.CommendationMapper">
+    <resultMap type="commendation" id="commendItem">
+        <id property="commendation_id" column="commendation_id"></id>
+        <result property="commendation_content" column="commendation_content"></result>
+        <result property="commendation_time" column="commendation_time"></result>
+        <result property="commendation_belond" column="commendation_belond"></result>
+        <association property="user" javaType="user" column="user">
+            <id property="user_id" column="user_id"></id>
+            <result property="user_nick" column="user_nick"></result>
+            <result property="user_type" column="user_type"></result>
+        </association>
+    </resultMap>
+   <select id="getList" resultMap="commendItem">
+       select c.*,u.* from tb_commendation c join tb_user u on u.user_id = c.commendation_person
+       order by commendation_id DESC
+       limit #{start},#{pageSize}
+   </select>
+    <select id="getTotal" resultType="int">
+        select count(*) from tb_commendation
+    </select>
+
+    <insert id="insertOne" parameterType="commendation">
+        insert into tb_commendation (commendation_content,commendation_time,commendation_belond,commendation_person)
+        values
+        (#{commendation_content},#{commendation_time},#{commendation_belond},#{commendation_person})
+    </insert>
+    <update id="updateCon" parameterType="commendation">
+        update tb_commendation set
+        commendation_content = #{commendation_content}
+        where commendation_id = #{commendation_id}
+    </update>
+
+
+    <delete id="delOne" parameterType="int">
+        delete from tb_commendation where commendation_id = #{id}
+    </delete>
+</mapper>

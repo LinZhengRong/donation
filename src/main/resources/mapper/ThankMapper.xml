@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.ThankMapper">
+
+    <insert id="add" parameterType="Thank">
+        insert into tb_thank (thank_content,donation_id,thank_time) values
+        (#{thank_content},#{donation_id},#{thank_time})
+    </insert>
+</mapper>

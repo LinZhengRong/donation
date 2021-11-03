@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.UserMapper">
+    <resultMap type="User" id="userItem">
+        <id property="user_id" column="user_id"></id>
+        <result property="user_name" column="user_name"></result>
+        <result property="user_password" column="user_password"></result>
+        <result property="user_type" column="user_type"></result>
+        <result property="user_ID_number" column="user_ID_number"></result>
+        <result property="user_QQ" column="user_QQ"></result>
+        <result property="user_email" column="user_email"></result>
+        <result property="user_telephone" column="user_telephone"></result>
+        <result property="user_state" column="user_state"></result>
+        <result property="user_authority" column="user_authority"></result>
+        <result property="authority_name" column="authority_name"></result>
+        <result property="user_nick" column="user_nick"></result>
+        <result property="img" column="img"></result>
+    </resultMap>
+    <select id="hasUserByName" resultType="User">
+        select * from tb_user where user_name = #{user_name}
+    </select>
+    <select id="hasUser" resultMap="userItem">
+        select t.*,a.authority_name,p.pic_path as img from tb_user t
+        join tb_authority a on a.authority_id = t.user_authority
+        left join tb_demand_pic p on p.pic_id = t.user_credential
+        where user_id = #{user_id}
+    </select>
+    <select id="getUserlist" resultType="User" parameterType="user">
+        select * from tb_user
+        <trim prefix="where" prefixOverrides="and">
+            <if test="user.user_authority != null ">
+                user_authority  = #{user.user_authority}
+            </if>
+            <if test="user.user_type != null ">
+               and user_type  = #{user.user_type}
+            </if>
+        </trim>
+        <!-- 执行分页查询 -->
+            order by user_id DESC
+        limit #{start},#{pageSize}
+    </select>
+    <select id="getUserListTotal" resultType="int" parameterType="user">
+        select count(*) from tb_user
+
+        <trim prefix="where" prefixOverrides="and">
+            <if test="user_authority != null ">
+                user_authority  = #{user_authority}
+            </if>
+            <if test="user_type != null ">
+                and user_type  = #{user_type}
+            </if>
+        </trim>
+    </select>
+    <update id="updateUser" parameterType="User">
+        update tb_user set
+        <if test="user_ID_number !=null and user_ID_number != ''">
+            user_ID_number=#{user_ID_number},
+        </if>
+        <if test="user_QQ !=null and user_QQ != ''">
+            user_QQ=#{user_QQ},
+        </if>
+        <if test="user_telephone !=null and user_telephone != ''">
+            user_telephone=#{user_telephone},
+        </if>
+        <if test="user_nick !=null and user_nick != ''">
+            user_nick=#{user_nick},
+        </if>
+        <if test="user_password !=null and user_password != ''">
+            user_password=#{user_password},
+        </if>
+        <if test="user_email !=null and user_email != ''">
+            user_email=#{user_email},
+        </if>
+        <if test="user_credential !=null and user_credential != '' and user_type = 1">
+            user_credential=#{user_credential}
+        </if>
+        where user_id = #{user_id}
+    </update>
+    <!--
+    <delete id="delUser" parameterType="int">
+        delete from tb_user where user_id = #{user_id}
+    </delete>-->
+
+    <insert id="reg" parameterType="User">
+        insert into tb_user
+        (user_name,user_password,user_type,user_ID_number,user_QQ,user_telephone,user_state,user_authority,user_nick,user_credential,user_email)
+        values
+        (#{user_name},#{user_password},
+        #{user_type},#{user_ID_number},#{user_QQ},
+        #{user_telephone},1,#{user_authority},#{user_nick},#{user_credential},#{user_email})
+    </insert>
+
+
+    <update id="updateState" parameterType="User">
+        update tb_user set
+        user_state = #{user_state}
+        where user_id = #{user_id}
+    </update>
+
+    <select id="getByCondition" parameterType="User" resultType="User">
+        select * from tb_user where user_name = #{user_name}
+    </select>
+</mapper>

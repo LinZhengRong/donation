@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.ApplyMapper">
+    <update id="updateState" parameterType="int">
+        update tb_demand set
+        demand_status = 4
+        where demand_id = #{demand_id}
+    </update>
+
+    <insert id="toApply" parameterType="Apply">
+        insert into tb_apply (apply_person,demand_id,apply_time,state_id,pic_id,plan_num) values
+        (#{apply_person},#{demand_id},#{apply_time},4,#{pic_id},#{plan_num})
+    </insert>
+
+    <!--查询完成捐助的数量-->
+    <select id="getRealTotal" resultType="int" parameterType="int">
+        select IFNULL(sum(real_num),0) from
+        tb_apply where demand_id = #{demand_id}
+    </select>
+
+    <!--获取我的捐助 -->
+    <select id="getHelpList" resultType="Apply">
+        SELECT a.* ,d.demand_name ,s.state_desc as state from tb_apply a
+        join tb_demand d on  a.demand_id = d.demand_id
+        join tb_state s on a.state_id = s.state_id
+        where a.apply_person = #{id}
+        order by a.apply_time DESC
+        limit #{start},#{pageSize}
+    </select>
+    <!--获取我的捐助 -->
+    <select id="getMyTotal" resultType="int">
+        SELECT count(*) from tb_apply
+        where apply_person = #{id}
+    </select>
+    <!--获取单个捐助申请 -->
+    <select id="get" parameterType="int" resultType="Apply">
+        select a.*,u.user_email ,u.user_nick as  user_apply_nick from tb_apply a
+        join tb_user u on u.user_id = a.apply_person
+        where apply_id = #{apply_id}
+    </select>
+    <!-- 修改捐助申请的信息 -->
+    <update id="updateApply" parameterType="Apply">
+        update tb_apply
+        <set>
+            state_id = #{state_id},
+            <if test="check_time != null">
+                check_time = #{check_time},
+            </if>
+            <if test="real_num != null">
+                real_num = #{real_num}
+            </if>
+        </set>
+        where apply_id = #{apply_id}
+    </update>
+
+    <select id="getApplyTotalNum" resultType="int">
+        select count(*) from tb_apply
+        where apply_person = #{user_id} and state_id = 6
+    </select>
+    <select id="getApplySuccessNum" resultType="int">
+        select count(*) from tb_apply
+        where apply_person = #{user_id} and state_id = 7
+    </select>
+    <select id="getApplyingNum" resultType="int">
+        select count(*) from tb_apply
+        where apply_person = #{user_id} and state_id = 6
+    </select>
+    <select id="getApplyFailNum" resultType="int">
+        select count(*) from tb_apply
+        where apply_person = #{user_id} and state_id = 13
+    </select>
+
+    <select id="checkIsFail" parameterType="int" resultType="Apply">
+        select * from tb_apply where
+        demand_id = #{demand_id} and apply_person = #{apply_person} and state_id = 5
+    </select>
+
+    <!--获取需求对应正在进行的捐助 -->
+    <select id="getDoingApply" parameterType="Apply" resultType="Apply">
+        select * from tb_apply
+        where demand_id = #{demand_id}
+        and state_id = #{state_id}
+    </select>
+
+
+    <!-- 根据demand_id和user_id获取apply -->
+    <select id="getApplyByDAndU" parameterType="Apply" resultType="Apply">
+        select * from tb_apply
+        where demand_id = #{demand_id}
+        and apply_person = #{apply_person}
+    </select>
+</mapper>

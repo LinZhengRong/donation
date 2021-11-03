@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.donation.demo.dao.ActivityAndUserMapper">
+   <insert id="insertOne" parameterType="ActivityAndUser">
+       insert into tb_activity_user
+       (activity_id,person_id,time,team_num)
+       values
+       (#{activity_id},#{person_id},#{time},#{team_num})
+   </insert>
+
+    <select id="checkHasJoin" parameterType="ActivityAndUser" resultType="ActivityAndUser">
+        select * from tb_activity_user where
+        activity_id = #{activity_id} and person_id = #{person_id}
+    </select>
+
+    <select id="getPeople" resultType="ActivityAndUser" parameterType="int">
+        select a.* ,u.user_nick,u.user_type
+        from tb_activity_user a
+        join tb_user u on
+        a.person_id = u.user_id
+        where activity_id = #{activity_id}
+    </select>
+
+
+
+
+</mapper>
